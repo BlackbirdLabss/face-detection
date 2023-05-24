@@ -5,9 +5,19 @@ import numpy as np
 class VideoCap:
     def __init__(self, index_input_video, rx, ry):
         all_face_locations = []
+        self.count_faces = []
+        self.count_humans = []
         self.video_capture = cv2.VideoCapture(index_input_video)
         self.ret, self.current_frame = self.video_capture.read()
         self.current_frame_resized = cv2.resize(self.current_frame, (0,0), fx=rx, fy=ry)
+    
+    def get_count_human(self):
+        max_human = max(self.count_humans)
+        return max_human
+    
+    def get_count_face(self):
+        max_human = max(self.count_faces)
+        return max_human
     
     def get_video_capture(self):
         return self.video_capture
