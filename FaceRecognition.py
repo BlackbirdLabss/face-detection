@@ -9,7 +9,7 @@ from gevent import monkey
 from VideoCapture import VideoCap
 from gevent.pywsgi import WSGIServer
 from myFROZEN_GRAPH_HEAD import FROZEN_GRAPH_HEAD
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, jsonify, request
 
 app = Flask(__name__)
 resolution_x = 0.25
@@ -21,7 +21,28 @@ TEST_VIDEO_NAME = 'london_street'
 source = 'videos/{}.mp4'.format(TEST_VIDEO_NAME)
 
 webcam = VideoCap(0, resolution_x, resolution_y)
-webcam2 = VideoCap(source, 1, 1)
+#webcam2 = VideoCap(0, 1, 1)
+#webcam3 = VideoCap(0, 1, 1)
+
+# Load a sample picture and learn how to recognize it.
+obama_image = face_recognition.load_image_file("./img/obama.jfif")
+obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
+
+# Load a second sample picture and learn how to recognize it.
+biden_image = face_recognition.load_image_file("./img/rizky.jpg")
+biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
+
+# Create arrays of known face encodings and their names
+known_face_encodings = [
+    obama_face_encoding,
+    biden_face_encoding
+]
+known_face_names = [
+    "Barack Obama",
+    "Joe Biden"
+]
+
+face_names = []
 
 
 
@@ -38,12 +59,12 @@ def detect_bounding_box(vid):
 
 def gen_frames_three():
     while True:
-        t_start = time.time()
-        ret, image = webcam2.get_current_frame_read()
+        t_start = time.time()        
+        webcam._update_current_frame()
+        ret, image = webcam.get_current_frame_read()
 
         if ret == 0:
             break
-
         im_height, im_width, im_channel = image.shape
 
         # Head-detection run model
@@ -59,13 +80,12 @@ def gen_frames_three():
                b'Content-Type: image/jpeg\r\n\r\n' + buffer_frame_three + b'\r\n')  # concat frame one by one and show result
 
 def gen_frames_second():
-    while True:
+    while True:        
+        webcam._update_current_frame()
         result, video_frame_second = webcam.get_current_frame_read()  # read frames from the video
         if result is False:
             break  # terminate the loop if the frame is not read successfully
         else:
-            webcam._update_current_frame()
-            webcam._resize_current_frame(resolution_x, resolution_y)
             faces = detect_bounding_box(
                 video_frame_second
             )
@@ -82,10 +102,20 @@ def gen_frames():  # generate frame by frame from camera
         webcam.get_frame_enhancement(10,2)
         tm = cv2.TickMeter()
         tm.start()
-        webcam.face_recog(2, "hog")
+        webcam.face_recog(1, "hog")
         tm.stop()
 
         all_face_locations = webcam.get_all_face_locations()
+        all_face_encodings = webcam.get_all_face_encodings()
+
+        for all_face_encoding in all_face_encodings:
+            matches = face_recognition.compare_faces(known_face_encodings, all_face_encoding)
+            name = "Unknown"
+            face_distances = face_recognition.face_distance(known_face_encodings, all_face_encoding)
+            best_match_index = np.argmin(face_distances)
+            if matches[best_match_index]:
+                name = known_face_names[best_match_index]
+            face_names.append(name)
 
         for index, current_face_location in enumerate(all_face_locations):
             # splitting the tuple to get the four position values of current face
@@ -101,14 +131,38 @@ def gen_frames():  # generate frame by frame from camera
             #print('Found face {} '.format(index+1))
             # draw rectangle around the face detected
             rect_image = cv2.rectangle(webcam.get_current_frame(), (left_pos, top_pos), (right_pos, bottom_pos), (0,0,255), 2)
-            cv2.putText(rect_image, "Manusia ", (left_pos, top_pos-8), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
+            cv2.putText(rect_image, name, (left_pos, top_pos-8), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
             cv2.putText(webcam.get_current_frame(), 'FPS: {:.2f}'.format(tm.getFPS()), (0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
         ret, buffer = cv2.imencode('.jpg', webcam.get_current_frame())
         frame = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
+    
 
+
+
+@app.route('/input/source/', methods= ['POST'])
+def input_source():
+    input_value = request.form["input_value"]
+    fx = request.form["resolution"]
+    fy = request.form["resolution"]
+
+    if(input_value.isdigit()):
+        input_value = int(input_value)
+        fx = float(fx)
+        fy = float(fy)
+
+    webcam.input_source(input_value, fx, fy)
+    webcam._update_current_frame()
+
+    if(request.method == 'POST'):
+        data = {
+        "status" : "success",
+        "input_source" : input_value
+        }
+        
+    return jsonify(data)
 
 @app.route('/video_feed')
 def video_feed():
@@ -125,12 +179,30 @@ def video_feed_three():
     #Video streaming route. Put this in the src attribute of an img tag
     return Response(gen_frames_three(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/total/person', methods= ['GET'])
+def api_count_face():
+    if(request.method == 'GET'):
+        data = {
+        "status": "success",
+        "jumlah_wajah": webcam.get_count_face()
+        }
+    return jsonify(data)
 
-
-@app.route('/')
-def index():
-    """Video streaming home page."""
-    return render_template('index.html')
+@app.route('/check/camera', methods= ['GET'])
+def check_camera():
+    if(request.method == 'GET'):    
+        valid_cams = []
+        for i in range(8):
+            cap = cv2.VideoCapture(i)
+            if cap is None or not cap.isOpened():
+                print('Warning: unable to open video source: ', i)
+            else:
+                valid_cams.append(i)
+        data = {
+            "status" : "success",
+            "video_source" :  valid_cams
+        }
+    return jsonify(data)
 
 def main():
 
@@ -143,8 +215,7 @@ def main():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', threaded=True)
-    print(webcam.get_count_human())
-    print(webcam.get_count_face())
+    print(webcam.get_count_face)
 
     
 

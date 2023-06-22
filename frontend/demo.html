@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>Live Demo</title>
+
+    <!-- Bootstrap CSS-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" href="css/style3.css">
+    <!-- Scrollbar Custom CSS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
+
+    <!-- Font Awesome JS -->
+    <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js"
+        integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ"
+        crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js"
+        integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY"
+        crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <!-- Sidebar  -->
+        <nav id="sidebar">
+            <div id="dismiss">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+
+            <div class="sidebar-header">
+                <h3>Property</h3>
+            </div>
+            <div class="components">
+                <button id="button-check-camera">
+                    Check Camera
+                </button>
+                <div class="border-video-source">
+                    Video Source :
+                    <ul class="list-unstyled ul-video-source">
+                    </ul>
+                </div>
+                <select id="select-method" class="selectpicker form-control">
+                    <option value="0" selected="selected">Face Recognition</option>
+                    <option value="1">Face Detection</option>
+                    <option value="2">Human Detection</option>
+                </select>
+                <div id="upload-image">
+                    <input multiple accept="image/*" id="input-upload-image" type="file" name="upload-image"
+                        onchange="loadFile(event)" style="">
+                    <button id="button-upload-image">
+                        <span>Upload Image</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-image" viewBox="0 0 16 16">
+                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                            <path
+                                d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="list-upload-image"></p>
+                <div class="section-resolution">
+                    <span id="span-resolution">Resolution: </span><input id="input-resolution" type="number" step="0.05"
+                        value="0.25" max="1" min="0.1">
+                </div>
+                <input id="input-video-source" placeholder="Source number or URL video" type="text" name="video-source">
+                <button id="button-start" disabled>Start</button>
+            </div>
+
+            <ul class="list-unstyled CTAs">
+                <li>
+                    <a class="article">Back to article</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content  -->
+        <div id="content">
+            <div class="container-fluid">
+                <button type="button" id="sidebarCollapse" class="btn btn-info">
+                    <i class="fas fa-align-left"></i>
+                </button>
+                </button>
+            </div>
+
+            <div class="container-fluid py-3">
+                <div class="row">
+                    <div class="col-10">
+                        <image id="stream" src="http://localhost:5000/video_feed">
+                    </div>
+                    <div class="col-2 section-analysis">
+                        <h5>Analysis</h5>
+                        <div class="section-content-analysis">
+                            <button>
+                                Show
+                            </button>
+                            <div class="total-person">
+                                <span>Total Person: </span><span id="span-total-person">0</span>
+                            </div>
+                            <div class="detected-person">
+                                <span>Detected Person:</span>
+                                <ul class="list-unstyled">
+                                    <li>1. <span>Andi</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="overlay"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- Popper.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"
+        integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ"
+        crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"
+        integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm"
+        crossorigin="anonymous"></script>
+    <!-- jQuery Custom Scroller CDN -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
+
+    <script type="text/javascript">
+        var loadFile;
+        var labelPrompt;
+        var dataNamePerson = [];
+        var formData = "";
+        $(document).ready(function () {
+            var regInteger = /^-?\d+$/;
+
+            function isInteger(str) {
+                return regInteger.test(str);
+            }
+
+            loadFile = function (event) {
+                var formData = new FormData()
+                var files = $('#input-upload-image')[0].files;
+
+                for (let i = 0; i < event.target.files.length; i++) {
+                    var image = document.createElement('img');
+                    image.src = URL.createObjectURL(event.target.files[i])
+                    image.width = "50"
+                    document.querySelector(".list-upload-image").appendChild(image)
+                    labelPrompt()
+                    formData.append('images', files[i]);
+                    formData.append('name_person', dataNamePerson[i]);
+                }
+                console.log(formData.getAll("name_person"))
+            }
+
+            labelPrompt = function () {
+                let namePerson;
+                do {
+                    namePerson = prompt("Please enter label person for image:")
+                    dataNamePerson.push(namePerson)
+
+                } while (namePerson == null || namePerson == "")
+            }
+
+            $('#button-check-camera').click(function () {
+                $.get('http://127.0.0.1:5000/check/camera', function (data, status) {
+                    var videoSources = data.video_source
+                    var ulElement = $('.ul-video-source');
+                    videoSources.forEach(function (index) {
+                        console.log(index)
+                        var listItem = $('<li></li>');
+                        var svgElement = $('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4ECB71" class="bi bi-check-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" /><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" /></svg>');
+                        var sourceSpan = $('<span>Source: </span>');
+                        var valueSpan = $('<span class="value-video-source"></span>').text(index);
+
+                        listItem.append(svgElement);
+                        listItem.append(sourceSpan);
+                        listItem.append(valueSpan);
+                        ulElement.append(listItem);
+                    })
+
+                }).fail(function (err) {
+                    alert("Koneksi terputus😥")
+                })
+            })
+
+            $("#input-video-source").on('input', function () {
+                var input_start = $(this).val()
+                var button = $('#button-start');
+
+                if (input_start.trim() !== '') {
+                    button.prop('disabled', false);
+                } else {
+                    button.prop('disabled', true);
+                }
+            })
+
+            $("#button-start").click(function () {
+                var input_value = $("#input-video-source").val()
+                var input_resolution = $("#input-resolution").val()
+                $.ajax({
+                    url: "/upload_image",
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        console.log('Upload successful:', response);
+                        // Handle the server response if needed
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Upload error:', error);
+                        // Handle the error if needed
+                    }
+                })
+                $.post("http://127.0.0.1:5000/input/source/", { input_value: input_value, resolution: input_resolution })
+                    .done(function (data) {
+                        console.log(data)
+                    })
+            })
+            $("#select-method").change(function () {
+                var valueSelect = $(this).val()
+                if (valueSelect == 0) {
+                    $("#stream").attr("src", "http://localhost:5000/video_feed")
+                    $("#upload-image").show();
+                    $(".detected-person").show()
+                } else if (valueSelect == 1) {
+                    $("#stream").attr("src", "http://localhost:5000/video_feed_second")
+                    $("#upload-image").hide()
+                    $(".detected-person").hide()
+                } else if (valueSelect == 2) {
+                    $("#stream").attr("src", "http://localhost:5000/video_feed_three")
+                    $("#upload-image").hide()
+                    $(".detected-person").hide()
+                }
+            })
+
+            $('#button-upload-image').click(function () {
+                $('#input-upload-image').click()
+            })
+            $("#sidebar").mCustomScrollbar({
+                theme: "minimal"
+            });
+
+            $('#dismiss, .overlay').on('click', function () {
+                $('#sidebar').removeClass('active');
+                $('.overlay').removeClass('active');
+            });
+
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').addClass('active');
+                $('.overlay').addClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+        });
+    </script>
+</body>
+
+</html>
