@@ -6,26 +6,23 @@ import numpy as np
 class VideoCap:
     def __init__(self, index_input_video, rx, ry):
         all_face_locations = []
-        all_face_encodings = []
-        self.count_faces = [0,]
-        self.count_humans = [0,]
+        self.count_faces_hog = [0,]
+        self.count_faces_haarcascade = [0,]
         self.video_capture = cv2.VideoCapture(index_input_video)
         self.ret, self.current_frame = self.video_capture.read()
         self.current_frame_resized = cv2.resize(self.current_frame, (0, 0), fx=rx, fy=ry)
-        self.current_frame_resized = self.current_frame_resized[:, :, ::-1]
 
     def input_source(self, input, fx, fy):
         self.video_capture = cv2.VideoCapture(input)
         self.ret, self.current_frame = self.video_capture.read()
         self.current_frame_resized = cv2.resize(self.current_frame, (0, 0), fx=fx, fy=fy)
-        self.current_frame_resized = self.current_frame_resized[:, :, ::-1]
 
-    def get_count_human(self):
-        max_human = max(self.count_humans)
+    def get_count_faces_haarcascade(self):
+        max_human = max(self.count_faces_haarcascade)
         return max_human
 
-    def get_count_face(self):
-        max_human = max(self.count_faces)
+    def get_count_faces_hog(self):
+        max_human = max(self.count_faces_hog)
         return max_human
 
     def get_video_capture(self):
@@ -59,7 +56,3 @@ class VideoCap:
 
     def get_all_face_locations(self):
         return self.all_face_locations
-
-    def get_all_face_encodings(self):
-        self.all_face_encodings = face_recognition.face_encodings(self.get_current_frame_resized(), self.all_face_locations)
-        return self.all_face_encodings

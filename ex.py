@@ -12,13 +12,33 @@ from myFROZEN_GRAPH_HEAD import FROZEN_GRAPH_HEAD
 from flask import Flask, render_template, Response, jsonify, request
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
 resolution_x = 0.25
 resolution_y = 0.25
 
 PATH_TO_CKPT_HEAD = 'models/HEAD_DETECTION_300x300_ssd_mobilenetv2.pb'
 head_detector = FROZEN_GRAPH_HEAD(PATH_TO_CKPT_HEAD)
-#rtsp://admin:FMOSMJ@192.168.13.199:554/Streaming/Channels/102
+TEST_VIDEO_NAME = 'london_street'
+source = 'videos/{}.mp4'.format(TEST_VIDEO_NAME)
+
 webcam = VideoCap(0, resolution_x, resolution_y)
+#webcam2 = VideoCap(0, 1, 1)
+#webcam3 = VideoCap(0, 1, 1)
+
+# Load a sample picture and learn how to recognize it.
+obama_image = face_recognition.load_image_file("./img/obama.jfif")
+obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
+
+# Load a second sample picture and learn how to recognize it.
+biden_image = face_recognition.load_image_file("./img/rizky.jpg")
+biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
+
+# Create arrays of known face encodings and their names
+known_face_encodings = []
+known_face_names = []
+
+face_names = []
 
 
 
@@ -27,7 +47,7 @@ def detect_bounding_box(vid):
     face_classifier = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     humans = face_classifier.detectMultiScale(gray_image, 1.1, 5, minSize=(40, 40))
-    webcam.count_faces_haarcascade.append(len(humans))
+    webcam.count_humans.append(len(humans))
     #print("human {}".format(len(faces)))
     for (x, y, w, h) in humans:
         cv2.rectangle(vid, (x, y), (x + w, y + h), (0, 255, 0), 4)
@@ -82,6 +102,16 @@ def gen_frames():  # generate frame by frame from camera
         tm.stop()
 
         all_face_locations = webcam.get_all_face_locations()
+        all_face_encodings = webcam.get_all_face_encodings()
+
+        for all_face_encoding in all_face_encodings:
+            matches = face_recognition.compare_faces(known_face_encodings, all_face_encoding)
+            name = "Unknown"
+            face_distances = face_recognition.face_distance(known_face_encodings, all_face_encoding)
+            best_match_index = np.argmin(face_distances)
+            if matches[best_match_index]:
+                name = known_face_names[best_match_index]
+            face_names.append(name)
 
         for index, current_face_location in enumerate(all_face_locations):
             # splitting the tuple to get the four position values of current face
@@ -93,11 +123,11 @@ def gen_frames():  # generate frame by frame from camera
             left_pos = left_pos*int(1/resolution_x)
             # printing the location of current face
             #print('Found face {} at cordinate top:{}, right:{}, bottom:{}, left:{}'.format(index+1, top_pos, right_pos, bottom_pos, left_pos))
-            webcam.count_faces_hog.append(index+1)
+            webcam.count_faces.append(index+1)
             #print('Found face {} '.format(index+1))
             # draw rectangle around the face detected
             rect_image = cv2.rectangle(webcam.get_current_frame(), (left_pos, top_pos), (right_pos, bottom_pos), (0,0,255), 2)
-            cv2.putText(rect_image, "Manusia", (left_pos, top_pos-8), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
+            cv2.putText(rect_image, name, (left_pos, top_pos-8), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
             cv2.putText(webcam.get_current_frame(), 'FPS: {:.2f}'.format(tm.getFPS()), (0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
         ret, buffer = cv2.imencode('.jpg', webcam.get_current_frame())
@@ -105,6 +135,20 @@ def gen_frames():  # generate frame by frame from camera
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
     
+@app.route('/upload_image', methods = ['POST'])
+def upload_image():
+    images = request.files.getlist('images')
+    name_person = request.form.getlist('name_person')
+    for index, image in enumerate(images):
+        # Load a sample picture and learn how to recognize it.
+        image_files = face_recognition.load_image_file(image)
+        image_file_encodings = face_recognition.face_encodings(image_files)[0]
+        known_face_encodings.append(image_file_encodings)
+        known_face_names.append(name_person[index])
+    print(known_face_names)
+
+
+
 
 @app.route('/input/source/', methods= ['POST'])
 def input_source():
@@ -114,9 +158,8 @@ def input_source():
 
     if(input_value.isdigit()):
         input_value = int(input_value)
-    
-    fx = float(fx)
-    fy = float(fy)
+        fx = float(fx)
+        fy = float(fy)
 
     webcam.input_source(input_value, fx, fy)
     webcam._update_current_frame()
@@ -144,21 +187,12 @@ def video_feed_three():
     #Video streaming route. Put this in the src attribute of an img tag
     return Response(gen_frames_three(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/face/hog', methods= ['GET'])
-def api_count_faces_hog():
+@app.route('/total/person', methods= ['GET'])
+def api_count_face():
     if(request.method == 'GET'):
         data = {
         "status": "success",
-        "face_total": webcam.get_count_faces_hog()
-        }
-    return jsonify(data)
-
-@app.route('/face/haarcascade', methods= ['GET'])
-def api_count_faces_haarcascade():
-    if(request.method == 'GET'):
-        data = {
-        "status": "success",
-        "face_total": webcam.get_count_faces_haarcascade()
+        "jumlah_wajah": webcam.get_count_face()
         }
     return jsonify(data)
 

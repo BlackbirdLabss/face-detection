@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <!-- Our Custom CSS -->
-    <link rel="stylesheet" href="css/style3.css">
+    <link rel="stylesheet" href="css/style_demo.css">
     <!-- Scrollbar Custom CSS -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
@@ -49,9 +49,9 @@
                     </ul>
                 </div>
                 <select id="select-method" class="selectpicker form-control">
-                    <option value="0" selected="selected">Face Recognition</option>
-                    <option value="1">Face Detection</option>
-                    <option value="2">Human Detection</option>
+                    <option value="0" selected="selected">HOG</option>
+                    <option value="1">Haarcascade</option>
+                    <option value="2">SSD Tensorflow</option>
                 </select>
                 <div id="upload-image">
                     <input multiple accept="image/*" id="input-upload-image" type="file" name="upload-image"
@@ -68,7 +68,7 @@
                 </div>
                 <p class="list-upload-image"></p>
                 <div class="section-resolution">
-                    <span id="span-resolution">Resolution: </span><input id="input-resolution" type="number" step="0.05"
+                    <span id="span-resolution">Resolution : </span><input id="input-resolution" type="number" step="0.05"
                         value="0.25" max="1" min="0.1">
                 </div>
                 <input id="input-video-source" placeholder="Source number or URL video" type="text" name="video-source">
@@ -85,7 +85,7 @@
         <!-- Page Content  -->
         <div id="content">
             <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info">
+                <button type="button" id="sidebarCollapse">
                     <i class="fas fa-align-left"></i>
                 </button>
                 </button>
@@ -97,19 +97,13 @@
                         <image id="stream" src="http://localhost:5000/video_feed">
                     </div>
                     <div class="col-2 section-analysis">
-                        <h5>Analysis</h5>
+                        <span id="span-analysis">Analysis (<span id="span-model-analysis">HOG</span>)</span>
                         <div class="section-content-analysis">
-                            <button>
+                            <button type="button" id="button-show">
                                 Show
                             </button>
                             <div class="total-person">
-                                <span>Total Person: </span><span id="span-total-person">0</span>
-                            </div>
-                            <div class="detected-person">
-                                <span>Detected Person:</span>
-                                <ul class="list-unstyled">
-                                    <li>1. <span>Andi</span></li>
-                                </ul>
+                                <span>Total Face: </span><span id="span-total-face">0</span> 
                             </div>
                         </div>
                     </div>
@@ -135,10 +129,11 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
 
     <script type="text/javascript">
+        var urlTotalFace='http://127.0.0.1:5000/face/hog';
         var loadFile;
         var labelPrompt;
         var dataNamePerson = [];
-        var formData = "";
+        var formData;
         $(document).ready(function () {
             var regInteger = /^-?\d+$/;
 
@@ -147,7 +142,7 @@
             }
 
             loadFile = function (event) {
-                var formData = new FormData()
+                formData = new FormData()
                 var files = $('#input-upload-image')[0].files;
 
                 for (let i = 0; i < event.target.files.length; i++) {
@@ -219,6 +214,8 @@
                     },
                     error: function(xhr, status, error) {
                         console.log('Upload error:', error);
+                        console.log(formData.get('images'))
+                        console.log(formData.get('name_person'))
                         // Handle the error if needed
                     }
                 })
@@ -228,20 +225,30 @@
                     })
             })
             $("#select-method").change(function () {
-                var valueSelect = $(this).val()
+                var valueSelect = $(this).val()                                  
+                var span = document.getElementById("span-model-analysis")
                 if (valueSelect == 0) {
                     $("#stream").attr("src", "http://localhost:5000/video_feed")
-                    $("#upload-image").show();
-                    $(".detected-person").show()
+                    urlTotalFace = 'http://127.0.0.1:5000/face/hog';
+                    span.textContent = "HOG"
+                    alert(urlTotalFace)
                 } else if (valueSelect == 1) {
                     $("#stream").attr("src", "http://localhost:5000/video_feed_second")
-                    $("#upload-image").hide()
-                    $(".detected-person").hide()
+                    urlTotalFace = 'http://127.0.0.1:5000/face/haarcascade';
+                    span.textContent = 'Haarcascade'
                 } else if (valueSelect == 2) {
                     $("#stream").attr("src", "http://localhost:5000/video_feed_three")
-                    $("#upload-image").hide()
-                    $(".detected-person").hide()
+                    span.textContent = 'SSD Tensorflow'
                 }
+            })
+            $('#button-show').click(function () {
+                $.get(urlTotalFace, function (data, status) {
+                    var faceTotal = data.face_total                  
+                    let span = document.getElementById("span-total-face")
+                    span.textContent = data.face_total
+                    
+
+                })
             })
 
             $('#button-upload-image').click(function () {
