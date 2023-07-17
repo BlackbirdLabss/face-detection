@@ -16,7 +16,7 @@
     <!-- Scrollbar Custom CSS -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Font Awesome JS -->
     <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js"
         integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ"
@@ -94,7 +94,10 @@
             <div class="container-fluid py-3">
                 <div class="row">
                     <div class="col-10">
-                        <image id="stream" src="http://localhost:5000/video_feed">
+                        <div class="row"><button type="button" id="button-hide">Hide</button></div>
+                        <div class="row"><image id="stream" src="./assets/bg.png"></image></div>
+                        <div class="row"><span id="span-graph">Visualisation</span></div>
+                        <div class="row"><canvas id="chart"></canvas></div>                               
                     </div>
                     <div class="col-2 section-analysis">
                         <span id="span-analysis">Analysis (<span id="span-model-analysis">HOG</span>)</span>
@@ -133,7 +136,11 @@
         var loadFile;
         var labelPrompt;
         var dataNamePerson = [];
-        var formData;
+        var formData;        
+        var dataFace = []
+        var dataLabel = []
+        var chart;
+        
         $(document).ready(function () {
             var regInteger = /^-?\d+$/;
 
@@ -165,6 +172,24 @@
 
                 } while (namePerson == null || namePerson == "")
             }
+            var url = "http://localhost:5000/video_feed"
+            var image_stream_url= document.getElementById('stream');
+            function checkURL(url){
+                var image = $("#stream");
+                fetch(url)
+                .then(function(response) {
+                    if (response.ok) {
+                    console.log('Link status is 200');
+                    image.attr("src", "http://localhost:5000/video_feed");
+                    } else {
+                    console.log('Link status is not 200');
+                    }
+                })
+                .catch(function(error) {
+                    console.log('An error occurred while checking the link status:', error);
+                });           
+            }
+            setInterval(checkURL(url), 2000);
 
             $('#button-check-camera').click(function () {
                 $.get('http://127.0.0.1:5000/check/camera', function (data, status) {
@@ -224,6 +249,87 @@
                         console.log(data)
                     })
             })
+
+            var chartElement = document.getElementById('chart');
+            var chartContext = chartElement.getContext('2d');
+
+            // Create a line chart using Chart.js
+            function createChart() {
+            chart = new Chart(chartContext, {
+                type: 'line',
+                data: {
+                labels: [], // X-axis labels for the chart
+                datasets: [{
+                    label: 'Total Face',
+                    data: dataFace, // Y-axis data for the chart
+                    borderColor: 'rgb(205, 239, 132)',
+                    fill: false
+                }]
+                },
+                options: {
+                responsive: true,
+                scales: {
+                    x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                    },
+                    y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Total Face'
+                    }
+                    }
+                }
+                }
+            });
+            }
+
+            // Function to fetch real-time data from the sensor API
+            function fetchData() {
+            fetch(urlTotalFace) // Replace '/sensor' with the actual URL of your sensor API
+                .then(function(response) {
+                return response.json();
+                })
+                .then(function(data) {
+                dataFace.push(data.face_total);
+
+                if (dataFace.length > 100) {
+                    dataFace.shift();
+                }
+
+                // Add the current time as a label
+                var currentTime = new Date().toLocaleTimeString();
+                dataLabel.push(currentTime);
+
+                 // Limit the number of labels to display
+                if (dataLabel.length > 100) {
+                    dataLabel.shift();
+                }
+
+
+                chart.data.labels = dataLabel;
+                chart.data.datasets[0].data = dataFace;
+                chart.update();
+                })
+                .catch(function(error) {
+                console.log('An error occurred while fetching the sensor data:', error);
+                });
+            }
+
+            // Call the createChart function to initialize the chart
+            createChart();
+
+            // Call the fetchData function initially to start fetching real-time data
+            fetchData();
+
+            // Fetch data every 1 second
+            setInterval(fetchData, 1000);
+
+
             $("#select-method").change(function () {
                 var valueSelect = $(this).val()                                  
                 var span = document.getElementById("span-model-analysis")
@@ -250,6 +356,23 @@
 
                 })
             })
+
+            const button = document.getElementById('button-hide');
+            const image = document.getElementById('stream');
+
+            // Function to toggle the visibility of the image
+            function toggleImage() {
+            if (image.style.display === 'none') {
+                image.style.display = 'block';
+                button.textContent = 'Hide';
+            } else {
+                image.style.display = 'none';
+                button.textContent = 'Show';
+            }
+            }
+
+            // Attach the event listener to the button
+            button.addEventListener('click', toggleImage);
 
             $('#button-upload-image').click(function () {
                 $('#input-upload-image').click()

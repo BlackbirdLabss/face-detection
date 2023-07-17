@@ -8,6 +8,7 @@ body {
     font-family: 'Roboto', sans-serif;
     background: #000000;
     overflow: hidden;
+    overflow-y: scroll;
 }
 
 p {
@@ -210,7 +211,7 @@ a.article:hover {
 }
 
 #button-check-camera:hover {
-    background-color: #1B1C17;
+    background-color: ;
     color: #CDEF84;
 }
 
@@ -387,4 +388,50 @@ input#input-video-source {
 
 #span-model-analysis{
     font-size: 0.6em;
+}
+
+#button-hide{
+    border: none;
+    width: 78px;
+    border-radius: 8px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-left: 91.85%;
+    background-color: #CDEF84;
+    margin-bottom: 10px;
+}
+
+#button-hide:hover{
+    background-color: #1B1C17;
+    color: #CDEF84;
+}
+
+#button-display{
+    border: none;
+    width: 78px;
+    border-radius: 8px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-left: 91.85%;
+    background-color: #CDEF84;
+    margin-bottom: 10px;
+}
+
+#button-display:hover{
+    background-color: #1B1C17;
+    color: #CDEF84;
+}
+
+#span-graph{    
+    font-size: 1.2em;
+    color: #ffff;
+    margin-top: 50px;
 }
