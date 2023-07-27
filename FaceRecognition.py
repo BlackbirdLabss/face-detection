@@ -2,24 +2,20 @@ import face_recognition
 import cv2
 import time
 import numpy as np
-import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from gevent import monkey 
 from VideoCapture import VideoCap
 from gevent.pywsgi import WSGIServer
-from myFROZEN_GRAPH_HEAD import FROZEN_GRAPH_HEAD
 from flask import Flask, render_template, Response, jsonify, request
 
 app = Flask(__name__)
 resolution_x = 0.25
 resolution_y = 0.25
 
-PATH_TO_CKPT_HEAD = 'models/HEAD_DETECTION_300x300_ssd_mobilenetv2.pb'
-head_detector = FROZEN_GRAPH_HEAD(PATH_TO_CKPT_HEAD)
-#rtsp://admin:FMOSMJ@192.168.13.199:554/Streaming/Channels/102
-webcam = VideoCap(0, resolution_x, resolution_y)
 
+#rtsp://admin:FMOSMJ@192.168.221.199:554/Streaming/Channels/102
+webcam = VideoCap(0, resolution_x, resolution_y)
 
 
 def detect_bounding_box(vid):
@@ -33,27 +29,6 @@ def detect_bounding_box(vid):
         cv2.rectangle(vid, (x, y), (x + w, y + h), (0, 255, 0), 4)
     return humans
 
-def gen_frames_three():
-    while True:
-        t_start = time.time()        
-        webcam._update_current_frame()
-        ret, image = webcam.get_current_frame_read()
-
-        if ret == 0:
-            break
-        im_height, im_width, im_channel = image.shape
-
-        # Head-detection run model
-        image, heads = head_detector.run(image, im_width, im_height)
-
-        fps = 1 / (time.time() - t_start)
-        cv2.putText(image, "FPS: {:.2f}".format(fps), (10, 30), 0, 5e-3 * 130, (0,0,255), 2)
-        cv2.putText(image, "HEAD DETECTION", (int(im_width/2)+50, im_height-10), 0, 0.5, (255,255,255), 1)
-        ret, buffer = cv2.imencode('.jpg', image)
-        #cv2.putText(buffer, "Total Human: "+str(sum_head), (10, 50), 0, 5e-3 * 130, (0,0,255), 2)
-        buffer_frame_three = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + buffer_frame_three + b'\r\n')  # concat frame one by one and show result
 
 def gen_frames_second():
     while True:        
@@ -75,7 +50,6 @@ def gen_frames():  # generate frame by frame from camera
     while True:    
         webcam._update_current_frame()
         webcam._resize_current_frame(resolution_x, resolution_y)
-        webcam.get_frame_enhancement(10,2)
         tm = cv2.TickMeter()
         tm.start()
         webcam.face_recog(1, "hog")
@@ -139,11 +113,6 @@ def video_feed_second():
     #Video streaming route. Put this in the src attribute of an img tag
     return Response(gen_frames_second(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/video_feed_three')
-def video_feed_three():
-    #Video streaming route. Put this in the src attribute of an img tag
-    return Response(gen_frames_three(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
 @app.route('/face/hog', methods= ['GET'])
 def api_count_faces_hog():
     if(request.method == 'GET'):
@@ -188,7 +157,7 @@ def main():
     http.serve_forever()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', threaded=True)
+    app.run(host='0.0.0.0', threaded=True, debug=True)
     print(webcam.get_count_face)
 
     

@@ -51,8 +51,8 @@
                 <select id="select-method" class="selectpicker form-control">
                     <option value="0" selected="selected">HOG</option>
                     <option value="1">Haarcascade</option>
-                    <option value="2">SSD Tensorflow</option>
                 </select>
+                <!--
                 <div id="upload-image">
                     <input multiple accept="image/*" id="input-upload-image" type="file" name="upload-image"
                         onchange="loadFile(event)" style="">
@@ -66,6 +66,7 @@
                         </svg>
                     </button>
                 </div>
+                -->
                 <p class="list-upload-image"></p>
                 <div class="section-resolution">
                     <span id="span-resolution">Resolution : </span><input id="input-resolution" type="number" step="0.05"
@@ -77,7 +78,7 @@
 
             <ul class="list-unstyled CTAs">
                 <li>
-                    <a class="article">Back to article</a>
+                    <a class="article">Back to Home</a>
                 </li>
             </ul>
         </nav>
@@ -95,7 +96,7 @@
                 <div class="row">
                     <div class="col-10">
                         <div class="row"><button type="button" id="button-hide">Hide</button></div>
-                        <div class="row"><image id="stream" src="./assets/bg.png"></image></div>
+                        <div class="row"><image id="stream" src="http://localhost:5000/video_feed"></image></div>
                         <div class="row"><span id="span-graph">Visualisation</span></div>
                         <div class="row"><canvas id="chart"></canvas></div>                               
                     </div>
@@ -132,7 +133,8 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
 
     <script type="text/javascript">
-        var urlTotalFace='http://127.0.0.1:5000/face/hog';
+        var urlTotalFace='http://127.0.0.1:5000/max/face/hog';
+        var urlDetectFace='http://127.0.0.1:5000/face/hog';
         var loadFile;
         var labelPrompt;
         var dataNamePerson = [];
@@ -148,7 +150,7 @@
                 return regInteger.test(str);
             }
 
-            loadFile = function (event) {
+            /*loadFile = function (event) {
                 formData = new FormData()
                 var files = $('#input-upload-image')[0].files;
 
@@ -162,7 +164,7 @@
                     formData.append('name_person', dataNamePerson[i]);
                 }
                 console.log(formData.getAll("name_person"))
-            }
+            }*/
 
             labelPrompt = function () {
                 let namePerson;
@@ -172,24 +174,7 @@
 
                 } while (namePerson == null || namePerson == "")
             }
-            var url = "http://localhost:5000/video_feed"
-            var image_stream_url= document.getElementById('stream');
-            function checkURL(url){
-                var image = $("#stream");
-                fetch(url)
-                .then(function(response) {
-                    if (response.ok) {
-                    console.log('Link status is 200');
-                    image.attr("src", "http://localhost:5000/video_feed");
-                    } else {
-                    console.log('Link status is not 200');
-                    }
-                })
-                .catch(function(error) {
-                    console.log('An error occurred while checking the link status:', error);
-                });           
-            }
-            setInterval(checkURL(url), 2000);
+            
 
             $('#button-check-camera').click(function () {
                 $.get('http://127.0.0.1:5000/check/camera', function (data, status) {
@@ -288,9 +273,8 @@
             });
             }
 
-            // Function to fetch real-time data from the sensor API
             function fetchData() {
-            fetch(urlTotalFace) // Replace '/sensor' with the actual URL of your sensor API
+            fetch(urlDetectFace)
                 .then(function(response) {
                 return response.json();
                 })
@@ -322,9 +306,7 @@
 
             // Call the createChart function to initialize the chart
             createChart();
-
-            // Call the fetchData function initially to start fetching real-time data
-            fetchData();
+            fetchData()
 
             // Fetch data every 1 second
             setInterval(fetchData, 1000);
@@ -335,16 +317,15 @@
                 var span = document.getElementById("span-model-analysis")
                 if (valueSelect == 0) {
                     $("#stream").attr("src", "http://localhost:5000/video_feed")
-                    urlTotalFace = 'http://127.0.0.1:5000/face/hog';
+                    urlTotalFace = 'http://127.0.0.1:5000/max/face/hog';
+                    urlDetectFace = 'http://127.0.0.1:5000/face/hog';
                     span.textContent = "HOG"
                     alert(urlTotalFace)
                 } else if (valueSelect == 1) {
                     $("#stream").attr("src", "http://localhost:5000/video_feed_second")
-                    urlTotalFace = 'http://127.0.0.1:5000/face/haarcascade';
+                    urlTotalFace = 'http://127.0.0.1:5000/max/face/haarcascade';
+                    urlDetectFace = 'http://127.0.0.1:5000/face/haarcascade';
                     span.textContent = 'Haarcascade'
-                } else if (valueSelect == 2) {
-                    $("#stream").attr("src", "http://localhost:5000/video_feed_three")
-                    span.textContent = 'SSD Tensorflow'
                 }
             })
             $('#button-show').click(function () {
