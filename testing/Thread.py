@@ -17,7 +17,7 @@ data_face_haarcascade = 0
 app = Flask(__name__)
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
-source = 'rtsp://admin:FMOSMJ@192.168.221.199:554'
+source = 0
 cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
 time.sleep(2.0)
 
@@ -195,6 +195,10 @@ if __name__ == '__main__':
     # t = threading.Thread(target=detect_motion, args=(args["frame_count"],))
     # t.daemon = True
     # t.start()
+ 
+    t = threading.Thread(target=hog)
+    t.daemon = True
+    t.start()
  
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,

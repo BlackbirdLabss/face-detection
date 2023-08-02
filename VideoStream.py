@@ -4,15 +4,13 @@ import numpy as np
 
 
 class VideoStream:
-    def __init__(self, source=0, resolution_x=0.25, resolution_y=0.25):
+    def __init__(self, source):
         all_face_locations = []
         self.count_faces_hog = 0
         self.count_faces_haarcascade = 0
         self.data_face_hog = 0
         self.data_face_haarcascade = 0
         self.video_capture = cv2.VideoCapture(source)
-        (self.grabbed, self.frame) = self.video_capture.read()
-        self.frame_resized = cv2.resize(self.frame, (0, 0), fx=resolution_x, fy=resolution_y)
     
     def update_frame(self):
         (self.grabbed, self.frame) = self.video_capture.read()

@@ -15,8 +15,9 @@ resolution_y = 0.25
 change_input = False
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
-source = 'rtsp://admin:FMOSMJ@192.168.221.199:554'
-cap = VideoStream(source, cv2.CAP_FFMPEG)
+source = 0
+cap = VideoStream(source)
+
 
 def detect_bounding_box(vid):
     gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)

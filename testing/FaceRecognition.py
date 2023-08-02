@@ -15,7 +15,7 @@ resolution_y = 0.25
 
 
 #rtsp://admin:FMOSMJ@192.168.221.199:554/Streaming/Channels/102
-webcam = VideoCap(0, resolution_x, resolution_y)
+webcam = VideoCap(1, resolution_x, resolution_y)
 
 
 def detect_bounding_box(vid):
