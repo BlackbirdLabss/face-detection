@@ -19,7 +19,7 @@
   <a href="#colabolator">Colabolator</a>
 </p>
 
-![screenshot]<img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif" alt="My Project GIF" width="100%" height="100%">
+<img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif" alt="My Project GIF" width="80%" height="80%">
 ## Key Features
 
 * Face Detection
