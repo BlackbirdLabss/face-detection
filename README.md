@@ -22,7 +22,7 @@
 <img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif" alt="My Project GIF" style="display: block;
   margin-left: auto;
   margin-right: auto;
-  width: 50%;">
+  width: 100%;">
 ## Key Features
 
 * Face Detection
