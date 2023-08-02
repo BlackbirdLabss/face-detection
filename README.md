@@ -11,16 +11,15 @@
 
 
 <p align="center">
-  <a href="#key-features">Features</a> •
+  <a href="#key-features">Features</a> •  
+  <a href="#requirements">Requirements</a> •
   <a href="#ipcam-configuration">IPCam Configuration</a> •
-  <a href="#download">Download</a> •
+  <a href="#instalation">Instalation</a> •
   <a href="#credits">Credits</a> •
-  <a href="#related">Related</a> •
-  <a href="#license">License</a>
+  <a href="#colabolator">Colabolator</a>
 </p>
 
-![screenshot](https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif)
-
+![screenshot]<img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif" alt="My Project GIF" width="500" height="600">
 ## Key Features
 
 * Face Detection
