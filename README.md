@@ -19,7 +19,7 @@
   <a href="#colabolator">Colabolator</a>
 </p>
 
-<img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif" alt="My Project GIF" width="80%" height="80%">
+<img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/demo_fdetect.gif" alt="My Project GIF" width="100%">
 ## Key Features
 
 * Face Detection
@@ -38,7 +38,7 @@
 
 ### IPCam Configuration
 ##### Using Cable LAN
-1. Connect your rj45/lan cable to your pc like this
+1. Connect your rj45/lan cable to your pc like this </br>
     <img src="https://raw.githubusercontent.com/rizkynat/FaceDetection/master/frontend/assets/img1.jpeg" alt="FDetect" width="600">
 2. Type **"ipconfig"** in cmd and look ip address for adapter lan to check whether the cable is connected to the PC
 3. Install ezviz studio app from this <a href="https://mfs.ezvizlife.com/EzvizStudioSetups.exe?ver=44195&_gl=1*81fpvs*_ga*MTc1NTE1MjY0MS4xNjkwOTYxNDA4*_ga_GFXNRVT2BW*MTY5MDk2MTQwOC4xLjAuMTY5MDk2MTQwOC42MC4wLjA.">link</a>
